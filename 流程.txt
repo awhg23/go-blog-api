@@ -1,0 +1,5 @@
+一、【用户注册】
+1.建表
+2.git init，go mod init go-blog-api,go mod tidy
+3.下载依赖
+4..gitignore
