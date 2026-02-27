@@ -2,4 +2,4 @@
 .vscode/
 *.exe
 vendor/
-.txt
+*.txt

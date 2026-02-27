@@ -1,8 +1,0 @@
-gin+gorm
-建表
-created_at (注册时间)使用timestamp还是datetime比较好，为什么？
-timestamp最多储存到2038年，且时区相关，存入自动转utc，取出转当前时区
-datetime最多9999年，时区无关，存什么记录什么
-default怎么写？ 
-current_timestamp
-
