@@ -34,3 +34,18 @@ func GenerateToken(userID int64, username string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
 }
+
+func ParseToken(tokenString string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		// 验证签名算法是否正确
+		return jwtSecret, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	// 验证Token是否有效，并提取CLaims的数据
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, err
+}

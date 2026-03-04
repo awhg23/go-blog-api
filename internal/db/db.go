@@ -1,6 +1,7 @@
 package db
 
 import (
+	"go-blog-api/internal/model"
 	"log"
 
 	"gorm.io/driver/mysql"
@@ -17,5 +18,7 @@ func InitDB() {
 	if err != nil {
 		log.Fatalf("数据库连接失败: %v", err)
 	}
+	// 自动迁移（根据模型创建表）
+	DB.AutoMigrate(&model.User{}, &model.Post{})
 	log.Println("数据库连接成功")
 }
