@@ -6,7 +6,7 @@ import "time"
 type User struct {
 	ID             int64     `gorm:"primaryKey;autoIncrement"`
 	Username       string    `gorm:"type:varchar(50);not null;unique"`
-	PasswordDigest string    `gorm:"type:varchar(255);not null"`
+	PasswordDigest string    `gorm:"type:varchar(255);not null" json:"-"`
 	CreatedAt      time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
 	UpdatedAt      time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
 }
