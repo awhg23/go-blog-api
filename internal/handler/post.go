@@ -178,7 +178,7 @@ func DeletePost(c *gin.Context) {
 	//2.校验越权：查询文章并检查归属
 	var post model.Post
 	if err := db.DB.First(&post, postID).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "文章不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "文章不存在"})
 		return
 	}
 
