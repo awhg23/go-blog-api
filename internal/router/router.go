@@ -17,6 +17,7 @@ func SetupRouter() *gin.Engine {
 		api.POST("/login", handler.Login)
 		api.GET("/posts", handler.GetPosts)
 
+		api.GET("/posts/:id/comments", handler.GetPostComments)
 		// ========= 私有接口（需要 JWT Token 鉴权） =========
 		authApi := api.Group("")
 		authApi.Use(middleware.JWTAuthMiddleware())
@@ -24,6 +25,8 @@ func SetupRouter() *gin.Engine {
 			authApi.POST("/posts", handler.CreatePost)
 			authApi.PUT("/posts/:id", handler.UpdatePost)
 			authApi.DELETE("/posts/:id", handler.DeletePost)
+			authApi.POST("/posts/:id/comments", handler.CreateComment)
+			authApi.DELETE("/comments/:id", handler.DeleteComment)
 		}
 	}
 

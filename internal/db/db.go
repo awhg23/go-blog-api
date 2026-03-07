@@ -19,6 +19,6 @@ func InitDB() {
 		log.Fatalf("数据库连接失败: %v", err)
 	}
 	// 自动迁移（根据模型创建表）
-	DB.AutoMigrate(&model.User{}, &model.Post{})
+	DB.AutoMigrate(&model.User{}, &model.Post{}, &model.Comment{})
 	log.Println("数据库连接成功")
 }
