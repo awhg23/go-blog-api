@@ -6,6 +6,7 @@ import (
 
 	"go-blog-api/internal/db"
 	"go-blog-api/internal/model"
+	"go-blog-api/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,13 +23,11 @@ func CreatePost(c *gin.Context) {
 		return
 	}
 	//核心逻辑：从上下文中获取刚刚中间件塞进去的userID
-	userIDvalue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "未获取到用户信息"})
+	userID, err := utils.GetCurrentUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录或Token无效"})
 		return
 	}
-	//断言为int64
-	userID := userIDvalue.(int64)
 
 	//构建要插入数据库的文章模型
 	post := model.Post{
@@ -72,7 +71,7 @@ func GetPosts(c *gin.Context) {
 	var posts []model.Post
 	var total int64
 
-	//2.获取文章总数（用于前段分页组件计算总页数)
+	//2.获取文章总数（用于前端分页组件计算总页数)
 	db.DB.Model(&model.Post{}).Count(&total)
 
 	//3.分页查询并预加载作者信息
@@ -84,6 +83,7 @@ func GetPosts(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取文章列表失败"})
 		return
 	}
+
 	//4.返回结果
 	c.JSON(http.StatusOK, gin.H{
 		"data": posts,
@@ -100,20 +100,10 @@ func UpdatePost(c *gin.Context) {
 	postID := c.Param("id")
 
 	//1.获取当前登录的 userID （从 JWT 中间件中取得）
-	userIDValue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权"})
+	currentUserID, err := utils.GetCurrentUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录或Token无效"})
 		return
-	}
-
-	var currentUserID int64
-	switch v := userIDValue.(type) {
-	case float64:
-		currentUserID = int64(v)
-	case int64:
-		currentUserID = v
-	case int:
-		currentUserID = int64(v)
 	}
 
 	//2.绑定请求体参数
@@ -160,21 +150,12 @@ func DeletePost(c *gin.Context) {
 	postID := c.Param("id")
 
 	//1. 获取当前登录的 userID （从 JWT 中间件中取得）
-	userIDVal, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权"})
+	currentUserID, err := utils.GetCurrentUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录或Token无效"})
 		return
 	}
 
-	var currentUserID int64
-	switch v := userIDVal.(type) {
-	case float64:
-		currentUserID = int64(v)
-	case int64:
-		currentUserID = v
-	case int:
-		currentUserID = int64(v)
-	}
 	//2.校验越权：查询文章并检查归属
 	var post model.Post
 	if err := db.DB.First(&post, postID).Error; err != nil {
@@ -183,7 +164,7 @@ func DeletePost(c *gin.Context) {
 	}
 
 	if post.UserID != currentUserID {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "越权操作，只能删除自己的文章"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "越权操作，只能删除自己的文章"})
 		return
 	}
 
