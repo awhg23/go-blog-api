@@ -1,0 +1,102 @@
+basePath: /api
+definitions:
+  handler.CreatePostRequest:
+    properties:
+      content:
+        type: string
+      title:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  handler.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: awhg23@outlook.com
+    name: API Support
+  description: 这是一个基于 Go + Gin + GORM 开发的博客项目后端 API 文档
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Go 博客后端 API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 校验账号密码并返回 JWT Token
+      parameters:
+      - description: 账号和密码
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "登录成功", "token": "..."}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "参数错误"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: '{"error": "用户名或密码错误"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 用户登录
+      tags:
+      - 用户模块
+  /posts:
+    post:
+      consumes:
+      - application/json
+      description: 发布一篇新的博客文章（需登录验证）
+      parameters:
+      - description: 文章标题和内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer // 这个标签说明该接口需要右上角的 Token 鉴权: []
+      summary: 发布新文章
+      tags:
+      - 文章模块
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

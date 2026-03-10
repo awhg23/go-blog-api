@@ -16,6 +16,16 @@ type CreatePostRequest struct {
 	Content string `json:"content" binding:"required"`
 }
 
+// CreatePost 处理发布文章请求
+// @Summary 发布新文章
+// @Description 发布一篇新的博客文章（需登录验证）
+// @Tags 文章模块
+// @Accept json
+// @Produce json
+// @Security Bearer // 这个标签说明该接口需要右上角的 Token 鉴权
+// @Param request body CreatePostRequest true "文章标题和内容"
+// @Success 200 {object} map[string]interface{}
+// @Router /posts [post]
 func CreatePost(c *gin.Context) {
 	var req CreatePostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

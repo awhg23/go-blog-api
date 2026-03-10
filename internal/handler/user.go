@@ -57,6 +57,17 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+// Login 处理用户登录请求
+// @Summary 用户登录
+// @Description 校验账号密码并返回 JWT Token
+// @Tags 用户模块
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "账号和密码"
+// @Success 200 {object} map[string]interface{} "{"message": "登录成功", "token": "..."}"
+// @Failure 400 {object} map[string]interface{} "{"error": "参数错误"}"
+// @Failure 401 {object} map[string]interface{} "{"error": "用户名或密码错误"}"
+// @Router /login [post]
 func Login(c *gin.Context) {
 	var req LoginRequest
 
