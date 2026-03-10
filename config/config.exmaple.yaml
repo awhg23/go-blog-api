@@ -1,0 +1,14 @@
+server:
+  port: "8080"
+
+database:
+  host: "127.0.0.1"
+  port: "3306"
+  user: "root"
+  password: "your_mysql_password_here"
+  dbname: "go_blog_api"
+
+JWT:
+  secret: "my_super_secret_key_123456"
+
+

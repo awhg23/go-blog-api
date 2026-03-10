@@ -1,14 +1,11 @@
 package utils
 
 import (
+	"go-blog-api/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
-// jwtSecret 是用于加密和解密 Token 的密钥（类似保险柜的钥匙）
-// ⚠️ 注意：在真实的企业项目中，这个密钥千万不能写死在代码里，应该从 config.yaml 或环境变量读取！
-var jwtSecret = []byte("my_super_secret_key_123456")
 
 // Claims 定义我们要在 Token 里携带的信息（载荷）
 type Claims struct {
@@ -32,13 +29,16 @@ func GenerateToken(userID int64, username string) (string, error) {
 
 	//使用 HS256 算法生成Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+
+	// 使用配置里的 Secret
+	secret := []byte(config.App.JWT.Secret)
+	return token.SignedString(secret)
 }
 
 func ParseToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// 验证签名算法是否正确
-		return jwtSecret, nil
+		return []byte(config.App.JWT.Secret), nil
 	})
 	if err != nil {
 		return nil, err
