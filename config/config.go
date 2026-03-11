@@ -10,6 +10,7 @@ type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	JWT      JWTConfig
+	Redis    RedisConfig
 }
 
 type ServerConfig struct {
@@ -26,6 +27,12 @@ type DatabaseConfig struct {
 
 type JWTConfig struct {
 	Secret string
+}
+
+type RedisConfig struct {
+	Addr     string
+	Password string
+	DB       int
 }
 
 var App *Config

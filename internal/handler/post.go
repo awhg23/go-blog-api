@@ -1,9 +1,14 @@
 package handler
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
+	"go-blog-api/internal/cache"
 	"go-blog-api/internal/db"
 	"go-blog-api/internal/model"
 	"go-blog-api/internal/utils"
@@ -76,6 +81,25 @@ func GetPosts(c *gin.Context) {
 		size = 100
 	} //防止单次请求过多导致崩溃
 
+	// ====================[新增：1. 缓存拦截层] ====================
+	ctx := context.Background()
+	// 构建这个分页专属的 Redis Key，比如“posts:page:1:size:10"
+	cacheKey := fmt.Sprintf("posts:page:%d:size:%d", page, size)
+
+	// 尝试从 Redis 中获取数据
+	cachedData, err := cache.RDB.Get(ctx, cacheKey).Result()
+	if err == nil {
+		// [缓存命中 Cache Hit]！
+		// 极致性能优化：因为存在 Redis 里的直接就是 JSON 字符串
+		// 所以不需要反序列化，直接指定 Header 返回给前端就行
+		c.Header("Content-Type", "application/json")
+		c.String(http.StatusOK, cachedData)
+		return
+	}
+	// ==============================================================
+
+	// ==================== [原有：2. 数据库查询层] ====================
+	// 如果代码走到这，说明【缓存未命中 Cache Miss】（或者是第一次访问，或者缓存过期了）
 	offset := (page - 1) * size
 
 	var posts []model.Post
@@ -95,14 +119,27 @@ func GetPosts(c *gin.Context) {
 	}
 
 	//4.返回结果
-	c.JSON(http.StatusOK, gin.H{
+	response := gin.H{
 		"data": posts,
 		"meta": gin.H{
 			"total": total,
 			"page":  page,
 			"size":  size,
 		},
-	})
+	}
+	// ==============================================================
+
+	// ====================[新增：3. 缓存回写层] ====================
+	// 将组装好的 response 序列化为 JSON 字符串，存入 Redis
+	if jsonData, err := json.Marshal(response); err == nil {
+		// 设置缓存过期时间（如 60 秒）
+		// 这样既能抵挡这 60 秒内的高并发，又保证了 60 秒后能拉取到别人发的新文章
+		cache.RDB.Set(ctx, cacheKey, jsonData, 60*time.Second)
+	}
+	// ==============================================================
+
+	// 最后把本次查到的数据返回给前端（一般只有触发查库的第一名用户才会走到这）
+	c.JSON(http.StatusOK, response)
 }
 
 // UpdatePost 修改文章（需要 JWT鉴权）
