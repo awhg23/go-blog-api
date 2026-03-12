@@ -11,7 +11,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type CreateCommentRequest struct {
+	Content string `json:"content" binding:"required,max=500"`
+}
+
 // ==================== 1. 发表评论 (需要 JWT 鉴权) ====================
+// CreateComment 发表评论
+// @Summary 发表评论
+// @Description 发表评论（需要登录）
+// @Tags 评论模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body CreateCommentRequest true "评论内容"
+// @Param id path int true "文章ID"
+// @Success 200 {object} map[string]interface{} "评论成功"
+// @Failure 400 {object} map[string]interface{} "参数错误"
+// @Failure 401 {object} map[string]interface{} "未登录或Token无效"
+// @Failure 404 {object} map[string]interface{} "文章不存在"
+// @Failure 500 {object} map[string]interface{} "发表评论失败"
+// @Router /posts/:id/comments [post]
 func CreateComment(c *gin.Context) {
 	// 1. 获取 URL 路径中的文章 ID，例如 /api/posts/1/comments
 	postIDStr := c.Param("id")
@@ -62,6 +81,19 @@ func CreateComment(c *gin.Context) {
 }
 
 // ==================== 2. 获取某篇文章的评论列表 (公开接口) ====================
+// GetPostComments 获取某篇文章的评论列表
+// @Summary 获取某篇文章的评论列表（分页）
+// @Description 获取某篇文章的评论列表（公开接口）
+// @Tags 评论模块
+// @Accept json
+// @Produce json
+// @Param id path int true "文章ID"
+// @Param page query int false "页码，默认1"
+// @Param size query int false "每页数量，默认10"
+// @Success 200 {object} map[string]interface{} "返回评论列表和分页信息"
+// @Failure 404 {object} map[string]interface{} "文章不存在"
+// @Failure 500 {object} map[string]interface{} "获取评论列表失败"
+// @Router /posts/:id/comments [get]
 func GetPostComments(c *gin.Context) {
 	postID := c.Param("id")
 
@@ -120,7 +152,20 @@ func GetPostComments(c *gin.Context) {
 }
 
 // ==================== 3. 删除评论 (需要 JWT 鉴权) ====================
-
+// DeleteComment 删除评论
+// @Summary 删除评论
+// @Description 删除评论（需要登录，只能删除自己的评论）
+// @Tags 评论模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id path int true "评论ID"
+// @Success 200 {object} map[string]interface{} "删除成功"
+// @Failure 401 {object} map[string]interface{} "未登录或Token无效"
+// @Failure 403 {object} map[string]interface{} "越权操作：只能删除自己的评论"
+// @Failure 404 {object} map[string]interface{} "评论不存在"
+// @Failure 500 {object} map[string]interface{} "删除失败"
+// @Router /comments/:id [delete]
 func DeleteComment(c *gin.Context) {
 	commentID := c.Param("id")
 

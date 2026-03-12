@@ -16,6 +16,19 @@ type RegisterRequest struct {
 	Password string `json:"password" binding:"required,min=6,max=20"`
 }
 
+// Register 处理用户注册请求
+// @Summary 用户注册
+// @Description 注册新用户（账号需3-20位，密码需6-20位)
+// @Tags 用户模块
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "账号和密码"
+// @Success 200 {object} map[string]interface{} "注册成功"
+// @Failure 400 {object} map[string]interface{} "参数错误，账号需3-20位，密码需6-20位"
+// @Failure 409 {object} map[string]interface{} "用户名已存在"
+// @Failure 500 {object} map[string]interface{} "密码加密失败"
+// @Failure 500 {object} map[string]interface{} "用户创建失败"
+// @Router /register [post]
 func Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -64,9 +77,10 @@ type LoginRequest struct {
 // @Accept json
 // @Produce json
 // @Param request body LoginRequest true "账号和密码"
-// @Success 200 {object} map[string]interface{} "{"message": "登录成功", "token": "..."}"
-// @Failure 400 {object} map[string]interface{} "{"error": "参数错误"}"
-// @Failure 401 {object} map[string]interface{} "{"error": "用户名或密码错误"}"
+// @Success 200 {object} map[string]interface{} "登录成功，返回 JWT Token"
+// @Failure 400 {object} map[string]interface{} "参数错误（账号和密码不能为空）"
+// @Failure 401 {object} map[string]interface{} "用户名或密码错误"
+// @Failure 500 {object} map[string]interface{} "系统异常，生成 Token 失败"
 // @Router /login [post]
 func Login(c *gin.Context) {
 	var req LoginRequest

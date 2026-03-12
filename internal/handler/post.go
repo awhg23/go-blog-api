@@ -28,8 +28,11 @@ type CreatePostRequest struct {
 // @Accept json
 // @Produce json
 // @Security Bearer // 这个标签说明该接口需要右上角的 Token 鉴权
-// @Param request body CreatePostRequest true "文章标题和内容"
-// @Success 200 {object} map[string]interface{}
+// @Param post body CreatePostRequest true "文章标题和内容"
+// @Success 200 {object} map[string]interface{}	"文章发布成功"
+// @Failure 400 {object} map[string]interface{} "参数错误（标题和内容不为空）"
+// @Failure 401 {object} map[string]interface{} "未登录或Token无效"
+// @Failure 500 {object} map[string]interface{} "发布文章失败"
 // @Router /posts [post]
 func CreatePost(c *gin.Context) {
 	var req CreatePostRequest
@@ -65,6 +68,17 @@ func CreatePost(c *gin.Context) {
 	})
 }
 
+// GetPosts 获取文章列表
+// @Summary 获取文章列表（分页）
+// @Description 获取文章列表，支持分页和缓存（无需登录，默认每页10条）
+// @Tags 文章模块
+// @Accept json
+// @Produce json
+// @Param page query int false "页码" default(1)
+// @Param size query int false "每页数量" default(10)
+// @Success 200 {object} map[string]interface{}	"文章列表获取成功"
+// @Failure 500 {object} map[string]interface{} "获取文章列表失败"
+// @Router /posts [get]
 func GetPosts(c *gin.Context) {
 	//1.获取分页参数（默认 page=1，size=10)
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -143,6 +157,21 @@ func GetPosts(c *gin.Context) {
 }
 
 // UpdatePost 修改文章（需要 JWT鉴权）
+// @Summary 修改文章
+// @Description 修改指定 ID 的文章（需登录，只能修改自己的文章）
+// @Tags 文章模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id path int true "文章ID"
+// @Param post body CreatePostRequest true "修改后的文章标题和内容"
+// @Success 200 {object} map[string]interface{} "文章更新成功"
+// @Failure 400 {object} map[string]interface{} "参数错误（标题和内容不为空）"
+// @Failure 401 {object} map[string]interface{} "未登录或Token无效"
+// @Failure 403 {object} map[string]interface{} "越权操作：只能修改自己的文章"
+// @Failure 404 {object} map[string]interface{} "文章不存在"
+// @Failure 500 {object} map[string]interface{} "更新文章失败"
+// @Router /posts/:id [put]
 func UpdatePost(c *gin.Context) {
 	postID := c.Param("id")
 
@@ -192,7 +221,20 @@ func UpdatePost(c *gin.Context) {
 	})
 }
 
-// DeletePost 删除文章 （需要 JWt 鉴权）
+// DeletePost 删除文章 （需要 JWT 鉴权）
+// @Summary 删除文章
+// @Description 删除指定 ID 的文章（需登录，只能删除自己的文章）
+// @Tags 文章模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id path int true "文章ID"
+// @Success 200 {object} map[string]interface{} "文章删除成功"
+// @Failure 401 {object} map[string]interface{} "未登录或Token无效"
+// @Failure 403 {object} map[string]interface{} "越权操作：只能删除自己的文章"
+// @Failure 404 {object} map[string]interface{} "文章不存在"
+// @Failure 500 {object} map[string]interface{} "删除文章失败"
+// @Router /posts/:id [delete]
 func DeletePost(c *gin.Context) {
 	postID := c.Param("id")
 
