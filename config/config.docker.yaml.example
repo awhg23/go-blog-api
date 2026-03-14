@@ -1,0 +1,17 @@
+server:
+  port: "8080"
+
+database:
+  host: "mysql-db" # 【核心改变】将 127.0.0.1 改成 MySQL 容器的名字
+  port: "3306"
+  user: "root"
+  password: "your_database_password_here"
+  dbname: "go_blog_api"
+
+jwt:
+  secret: "my_super_secret_key_123456"
+
+redis:
+  addr: "redis-cache:6379" # 【核心改变】将 127.0.0.1 改成 Redis 容器的名字
+  password: ""
+  db: 0

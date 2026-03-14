@@ -4,3 +4,5 @@
 vendor/
 *.txt
 config/config.yaml
+config/config.docker.yaml
+.env

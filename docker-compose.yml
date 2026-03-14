@@ -1,0 +1,32 @@
+services:
+  # 1. 数据库服务
+  mysql-db: # 【这里就是房间名，对应 config 里的 host】
+    image: mysql:8.0
+    container_name: blog-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: "go_blog_api"
+    ports:
+      - "3307:3306"
+  # 2. Redis 缓存服务
+  redis-cache: # 【这里就是房间名，对应 config 里的 addr】
+    image: redis:alpine
+    container_name: blog-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    
+    # 3. 我们的 Go 博客后端服务
+  blog-app:
+    build: .
+    container_name: blog-api-server
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      # 【魔法在这里】：启动时，把我们刚才写的 config.docker.yaml 替换掉容器里的 config.yaml
+      - ./config/config.docker.yaml:/app/config/config.yaml
+    depends_on:
+        - mysql-db
+        - redis-cache
